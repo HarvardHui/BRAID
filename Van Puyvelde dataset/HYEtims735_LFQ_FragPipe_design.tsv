@@ -1,0 +1,15 @@
+"file"	"sample"	"sample_name"	"condition"	"replicate"
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Alpha_01.d"	"AA_1"	"AA_1"	"A"	1
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Alpha_02.d"	"AA_2"	"AA_2"	"A"	2
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Alpha_03.d"	"AA_3"	"AA_3"	"A"	3
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Beta_01.d"	"AB_1"	"AB_1"	"A"	4
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Beta_02.d"	"AB_2"	"AB_2"	"A"	5
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Gamma_01.d"	"AG_1"	"AG_1"	"A"	6
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_A_Sample_Gamma_02.d"	"AG_2"	"AG_2"	"A"	7
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Alpha_01.d"	"BA_1"	"BA_1"	"B"	1
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Alpha_02.d"	"BA_2"	"BA_2"	"B"	2
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Alpha_03.d"	"BA_3"	"BA_3"	"B"	3
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Beta_02.d"	"BB_2"	"BB_2"	"B"	4
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Beta_03.d"	"BB_3"	"BB_3"	"B"	5
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Gamma_01.d"	"BG_1"	"BG_1"	"B"	6
+"E:\MS_data\PXD028735\LFQ_timsTOFPro_PASEF_Condition_B_Sample_Gamma_02.d"	"BG_2"	"BG_2"	"B"	7
