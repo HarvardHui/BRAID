@@ -6,6 +6,6 @@ BRAID is a modular framework - users can apply their preferred methods within th
 
 The main goal of BRAID is to inform MVI method developers and evaluators about batch effect influence on their findings.
 
-[BRAID graphical abstract.tif](https://github.com/user-attachments/files/26132527/BRAID.graphical.abstract.tif)
+<img width="4531" height="1817" alt="BRAID graphical abstract png" src="https://github.com/user-attachments/assets/12973980-3630-42f2-88fe-ae6af069fb91" />
 
 A working example of the BRAID framework can be found in the "BRAID functions and example.R" file.
