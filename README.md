@@ -6,7 +6,6 @@
 
 This repository contains the R code for both frameworks and the scripts that reproduce every figure and table in the manuscript:
 
-> Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*.
 
 ## Repository layout
 
@@ -188,7 +187,7 @@ The ComBat forest plot (Figure 3) needs the limma settings too, because its q-va
 **Missing values.** 30% of values are removed with a 3:7 MCAR:MNAR ratio (Jin et al. 2021). Features with more than 60% missing values are then dropped. In the BEAMs mode (`batchlinked`), the MNAR draw is made on batch means and applied to every sample of that batch.
 
 **Imputation methods.**
-- KNN-sample: K = 4 in BRAID for both datasets. BEGONE instead sets K from the batch structure (smallest batch-class group − 1), giving K = 6 for VP and K = 5 for HP (computed on its four pseudo-batches).
+- KNN-sample: K = 4.
 - KNN-feature: K = 10.
 - SVD: rank 3.
 - QRILC: `tune.sigma` = 0.5.
