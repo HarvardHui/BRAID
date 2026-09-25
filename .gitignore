@@ -1,0 +1,5 @@
+results/
+.Rproj.user/
+.Rhistory
+.RData
+*.rds.tmp
