@@ -28,15 +28,52 @@
 ## Locate the repository: the script's own folder (Rscript, source() or RStudio),
 ## walking up to the folder that holds R/BRAID_functions.R. Override with BRAID_ROOT.
 .script_dir <- function() {
-  a <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-  if (length(a)) return(dirname(normalizePath(sub("^--file=", "", a[1]), winslash = "/", mustWork = TRUE)))
-  for (f in rev(sys.frames())) if (!is.null(f$ofile)) return(dirname(normalizePath(f$ofile, winslash = "/", mustWork = TRUE)))
-  if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
-    p <- tryCatch(rstudioapi::getActiveDocumentContext()$path, error = function(e) "")
-    if (nzchar(p)) return(dirname(normalizePath(p, winslash = "/", mustWork = TRUE)))
+  # 1. Rscript: --file=/path/to/script.R
+  args <- commandArgs(trailingOnly = FALSE)
+  file_arg <- grep("^--file=", args, value = TRUE)
+  
+  if (length(file_arg) > 0) {
+    return(dirname(normalizePath(
+      sub("^--file=", "", file_arg[1]),
+      winslash = "/",
+      mustWork = TRUE
+    )))
   }
+  
+  # 2. RStudio / source(): look for the sourced file
+  frames <- sys.frames()
+  for (i in rev(seq_along(frames))) {
+    f <- frames[[i]]$ofile
+    if (!is.null(f)) {
+      return(dirname(normalizePath(
+        f,
+        winslash = "/",
+        mustWork = TRUE
+      )))
+    }
+  }
+  
+  # 3. RStudio: currently active source document
+  if (requireNamespace("rstudioapi", quietly = TRUE) &&
+      rstudioapi::isAvailable()) {
+    ctx <- tryCatch(
+      rstudioapi::getActiveDocumentContext(),
+      error = function(e) NULL
+    )
+    
+    if (!is.null(ctx) && nzchar(ctx$path)) {
+      return(dirname(normalizePath(
+        ctx$path,
+        winslash = "/",
+        mustWork = TRUE
+      )))
+    }
+  }
+  
+  # 4. Last resort
   getwd()
 }
+
 BRAID_ROOT <- Sys.getenv("BRAID_ROOT", unset = "")
 if (!nzchar(BRAID_ROOT)) { d <- .script_dir(); for (i in 1:3) { if (file.exists(file.path(d, "R", "BRAID_functions.R"))) break; d <- dirname(d) }; BRAID_ROOT <- d }
 if (!file.exists(file.path(BRAID_ROOT, "R", "BRAID_functions.R")))
