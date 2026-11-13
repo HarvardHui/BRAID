@@ -6,6 +6,7 @@
 
 This repository contains the R code for both frameworks and the scripts that reproduce every figure and table in the manuscript:
 
+> Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*.
 
 ## Repository layout
 
@@ -187,16 +188,16 @@ The ComBat forest plot (Figure 3) needs the limma settings too, because its q-va
 **Missing values.** 30% of values are removed with a 3:7 MCAR:MNAR ratio (Jin et al. 2021). Features with more than 60% missing values are then dropped. In the BEAMs mode (`batchlinked`), the MNAR draw is made on batch means and applied to every sample of that batch.
 
 **Imputation methods.**
-- KNN-sample: K = 4.
+- KNN-sample: K = 4 in BRAID for both datasets. BEGONE instead sets K from the batch structure (smallest batch-class group − 1), giving K = 6 for VP and K = 5 for HP (computed on its four pseudo-batches).
 - KNN-feature: K = 10.
 - SVD: rank 3.
 - QRILC: `tune.sigma` = 0.5.
-- NMFBatch: rank 4, 1000 iterations.
+- NMFBatch: rank 4, 1000 iterations. NMFBatch requires non-negative input, so a matrix with negative values is shifted by |min| + 1e-6 before factorisation and the shift is subtracted from the output.
 - Mean imputation.
 - MICE-PMM and MICE-norm: m = 1, maxit = 5.
 - RF: missForest, 100 trees.
 
-MICE and RF use samples, not features, as variables (manuscript Section 2.6). NMFBatch corrects batch effects itself, so no further correction is applied to its output.
+MICE and RF use samples, not features, as variables (manuscript Section 2.6). NMFBatch corrects batch effects itself, so on the batch+ve path no further correction is applied to its output. On the batch-ve path its batch-removal step (`gam_batch`) is skipped, so that path is imputation only, as for the other methods.
 
 **Batch effect correction.** ComBat (primary) or `limma::removeBatchEffect` (secondary).
 

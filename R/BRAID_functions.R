@@ -281,26 +281,39 @@ impute_methods <- function(data, methods, verbose = TRUE, ...) {
 ## with full model batch + class vs reduced model class). Its output is already
 ## batch-corrected, so no BECA is applied on top. Its data preparation can drop
 ## features, so all scoring re-aligns on shared rownames.
-run_nmfbatch <- function(mat, batch_factor, class_factor, k = 4, max_iter = 1000) {
+## NMFBatch requires non-negative input: a matrix whose minimum is below zero is
+## shifted by |min| + 1e-6 before factorisation (as the NMFBatch authors do for
+## the Leduc dataset), and the same shift is subtracted from the output so it is
+## scored on the original scale. correct = FALSE skips gam_batch(), passing the
+## uncorrected fit as both arguments, so only the imputation remains.
+run_nmfbatch <- function(mat, batch_factor, class_factor, k = 4, max_iter = 1000, correct = TRUE) {
   suppressPackageStartupMessages(library(NMFBatch))
-  mat <- as.matrix(mat)
+  mat <- as.matrix(mat); mn <- min(mat, na.rm = TRUE); shift <- 0
+  if (is.finite(mn) && mn < 0) {
+    shift <- abs(mn) + 1e-6
+    message(sprintf("  [NMFBatch] input min %.4f < 0; shifting by %.6f (reverted on output)", mn, shift))
+    mat <- mat + shift
+  }
   meta <- data.frame(batch = as.factor(batch_factor), class = as.factor(class_factor), row.names = colnames(mat))
   se <- SummarizedExperiment::SummarizedExperiment(assays = list(Uncorrected = mat), colData = meta)
   se_prep <- prepare_data(se, k = k)
   fit <- batch_factorization(se_prep, k = k, max.iter = max_iter)
-  fit_c <- gam_batch(NMF_fit = fit, se = se_prep, k = k, full_formula = "batch + class", reduced_formula = "class")
+  fit_c <- if (correct) gam_batch(NMF_fit = fit, se = se_prep, k = k, full_formula = "batch + class", reduced_formula = "class") else fit
   out <- reconstruct_with_residuals(se = se_prep, original_NMF_fit = fit, corrected_NMF_fit = fit_c,
                                     impute = TRUE)@assays@data@listData$NMFcorrected
+  out <- out - shift
   dropped <- setdiff(rownames(mat), rownames(out))
   if (length(dropped)) message(sprintf("  [NMFBatch] dropped %d/%d input features", length(dropped), nrow(mat)))
   out
 }
 ## Runs NMFBatch on the batch-ve and batch+ve matrices (in that order) and
-## splices the results into the two method lists.
+## splices the results into the two method lists. The batch-ve path is
+## imputation only (no gam_batch), matching the other methods on that path;
+## the batch+ve path is the full one-step method.
 .add_nmfbatch <- function(ve_list, pve_list, mis_ve, mis_pve, batch_factor, class_factor, k, max_iter) {
-  try_nmf <- function(m, lab) tryCatch(run_nmfbatch(m, batch_factor, class_factor, k, max_iter),
-                                       error = function(e) { message("  [NMFBatch/", lab, "] failed: ", conditionMessage(e)); NULL })
-  a <- try_nmf(mis_ve, "batch-ve"); b <- try_nmf(mis_pve, "batch+ve")
+  try_nmf <- function(m, lab, correct) tryCatch(run_nmfbatch(m, batch_factor, class_factor, k, max_iter, correct),
+                                                error = function(e) { message("  [NMFBatch/", lab, "] failed: ", conditionMessage(e)); NULL })
+  a <- try_nmf(mis_ve, "batch-ve", FALSE); b <- try_nmf(mis_pve, "batch+ve", TRUE)
   if (!is.null(a)) ve_list[["NMFBatch"]] <- a
   if (!is.null(b)) pve_list[["NMFBatch"]] <- b
   list(ve = ve_list, pve = pve_list)
