@@ -4,6 +4,8 @@
 
 **BEGONE** (Batch Effect Gradient Observation on Null Estimation) extends BRAID by injecting simulated batch effects over a grid of additive and multiplicative severities. It shows how each method degrades as batch effects grow stronger.
 
+<img width="4531" height="1817" alt="BRAID graphical abstract png" src="https://github.com/user-attachments/assets/432c008a-172a-4b46-83ec-0d44f81759f7" />
+
 This repository contains the R code for both frameworks and the scripts that reproduce every figure and table in the manuscript:
 
 > Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*.
