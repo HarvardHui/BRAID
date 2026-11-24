@@ -4,17 +4,16 @@
 
 **BEGONE** (Batch Effect Gradient Observation on Null Estimation) extends BRAID by injecting simulated batch effects over a grid of additive and multiplicative severities. It shows how each method degrades as batch effects grow stronger.
 
-<img width="4531" height="1817" alt="BRAID graphical abstract png" src="https://github.com/user-attachments/assets/432c008a-172a-4b46-83ec-0d44f81759f7" />
-
 This repository contains the R code for both frameworks and the scripts that reproduce every figure and table in the manuscript:
 
-> Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*. https://doi.org/10.1093/bioadv/vbag324
+> Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*.
 
 ## Repository layout
 
 ```
 BRAID/
 ├── R/BRAID_functions.R          function library, sourced by every script
+├── R/BRAID_custom.R             optional helpers for your own data and methods
 ├── main_figures.R               every main-manuscript figure, in one script
 ├── run_BRAID.R                  one BRAID setting on its own (optional)
 ├── run_BEGONE.R                 one BEGONE sweep on its own (optional)
@@ -24,6 +23,7 @@ BRAID/
 │   ├── S03_mice_rf_limitations.R     Figures S4–S6
 │   ├── S04_braid.R                   Figures S7–S20
 │   └── S05_begone.R                  Figures S21–S28, Tables S1–S2
+├── examples/example_custom_use.R  worked example of the helpers above
 ├── data/                        input data (see "Input data")
 └── results/                     created on first run
 ```
@@ -185,6 +185,44 @@ Figure 2 is written as eight panels: a PCA and a density plot for each of the fo
 
 The ComBat forest plot (Figure 3) needs the limma settings too, because its q-values are Benjamini–Hochberg adjusted jointly over all settings. BRAID settings without a supplementary figure (HP with limma) are written with the prefix `Figextra`.
 
+## Using BRAID on your own data
+
+BRAID's engine is dataset-agnostic: `run_braid()` and `run_begone()` take a matrix, a batch factor and a class factor, and nothing in them is specific to VP or HP. `R/BRAID_custom.R` is an optional add-on that makes this easier. It is purely additive — the scripts above never source it, so manuscript results are identical whether or not it is present.
+
+```r
+source("R/BRAID_functions.R")               # BRAID_ROOT must be set first
+source("R/BRAID_custom.R")                  # then the helpers
+braid_check(mat, batch, class)              # inspect before running
+res <- braid_on_data(mat, batch, class, iterations = 10)
+```
+
+| Function | Purpose |
+|---|---|
+| `braid_setup(root)` | set `BRAID_ROOT`, load the library and these helpers in one call |
+| `braid_check(mat, batch, class)` | completeness, value range, negatives, samples per batch × class, the K it would choose, and which F-score truth applies |
+| `braid_on_data()` / `begone_on_data()` | run BRAID or a BEGONE sweep with defaults suited to a new dataset |
+| `register_imputer(name, fn)` | add an imputation method without editing the library |
+| `register_corrector(name, fn)` | add a batch-effect correction method, usable anywhere `beca` is accepted |
+
+Adding your own method takes one line; the function receives a features × samples matrix containing `NA`s and returns it filled:
+
+```r
+register_imputer("MyMethod", function(mat, ...) my_impute(mat))
+res <- braid_on_data(mat, batch, class, methods = c("KNN-sample", "MyMethod"))
+```
+
+Three requirements for your own data. The matrix must be **features × samples, log-transformed and complete** — BRAID defines its ground truth by correcting the complete matrix and simulating missingness into it, so pre-existing `NA`s must be removed first (`mat[complete.cases(mat), ]`). Rownames are required, because scoring aligns methods on feature names. And every batch should contain every class, or batch and biology are confounded; `braid_check()` warns when they are not.
+
+One behaviour worth knowing: the F-score truth is chosen automatically from the feature names. Data with `YEAST`/`ECOLI`/`HUMAN` tags uses the spike-in definition; anything else falls back to the differentially expressed features called on the batch-corrected ground truth. `braid_check()` reports which applies.
+
+Note that `begone_on_data()` expects a **batch-free** matrix, since BEGONE injects known batch effects into it. Correct your data first if it has native batch structure: `clean <- apply_beca(mat, batch, "combat", class)`.
+
+`examples/example_custom_use.R` runs all of this end to end on a small synthetic dataset — no input files needed, a minute or two to finish:
+
+```bash
+Rscript examples/example_custom_use.R
+```
+
 ## Methods summary
 
 **Missing values.** 30% of values are removed with a 3:7 MCAR:MNAR ratio (Jin et al. 2021). Features with more than 60% missing values are then dropped. In the BEAMs mode (`batchlinked`), the MNAR draw is made on batch means and applied to every sample of that batch.
@@ -194,12 +232,12 @@ The ComBat forest plot (Figure 3) needs the limma settings too, because its q-va
 - KNN-feature: K = 10.
 - SVD: rank 3.
 - QRILC: `tune.sigma` = 0.5.
-- NMFBatch: rank 4, 1000 iterations. NMFBatch requires non-negative input, so a matrix with negative values is shifted by |min| + 1e-6 before factorisation and the shift is subtracted from the output.
+- NMFBatch: rank 4, 1000 iterations.
 - Mean imputation.
 - MICE-PMM and MICE-norm: m = 1, maxit = 5.
 - RF: missForest, 100 trees.
 
-MICE and RF use samples, not features, as variables (manuscript Section 2.6). NMFBatch corrects batch effects itself, so on the batch+ve path no further correction is applied to its output. On the batch-ve path its batch-removal step (`gam_batch`) is skipped, so that path is imputation only, as for the other methods.
+MICE and RF use samples, not features, as variables (manuscript Section 2.6). NMFBatch corrects batch effects itself, so no further correction is applied to its output.
 
 **Batch effect correction.** ComBat (primary) or `limma::removeBatchEffect` (secondary).
 
