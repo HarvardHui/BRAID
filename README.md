@@ -8,7 +8,7 @@
 
 This repository contains the R code for both frameworks and the scripts that reproduce every figure and table in the manuscript:
 
-> Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*.
+> Hui HWH, Goh WWB. BRAID: Batch-effect Reconciliation and Anomaly-aware Imputation for Data. *Bioinformatics Advances*. https://doi.org/10.1093/bioadv/vbag324
 
 ## Repository layout
 
